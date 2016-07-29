@@ -1,2 +1,4 @@
 .vagrant
 **/*.log
+.ssh/cagrant-config.j2.head-vagrant
+.ssh/vagrant-config.j2

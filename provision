@@ -1,0 +1,11 @@
+#!/bin/bash
+
+provision_vagrant()
+{
+  ansible-playbook -i "inventories/vagrant.ini" "infrastructure.yml"
+}
+
+provision_kimsufi()
+{
+  ansible-playbook -i "inventories/kimsufi.ini" "infrastructure.yml"
+}

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+bootstrap_vagrant()
+{
+  vagrant up
+  vagrant ssh-config >"./.ssh/vagrant-config.j2.head-vagrant"
+  cat "./.ssh/vagrant-config.j2.head" "./.ssh/vagrant-config.j2.tail" >"./.ssh/vagrant-config.j2"
+}
+
+bootstrap_kimsufi()
+{
+  cat "./.ssh/vagrant-config.j2.head" "./.ssh/vagrant-config.j2.tail" >"./.ssh/vagrant-config.j2"
+  echo >"/dev/null"
+}
