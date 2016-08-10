@@ -1,0 +1,14 @@
+---
+- name: install PIP
+  apt:
+    name="{{ item }}"
+    state=installed
+  with_items:
+  - "python-pip"
+  - "python-dev"
+  - "build-essential"
+- name: install PIP modules
+  pip:
+    name="{{ item }}"
+    state=present
+  with_items: "{{ common_pip_modules }}"

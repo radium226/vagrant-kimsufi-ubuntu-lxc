@@ -1,0 +1,7 @@
+kimsufi_application_key: "{{ vault_kimsufi_application_key }}"
+kimsufi_application_secret: "{{ vault_kimsufi_application_secret }}"
+kimsufi_consumer_key: "{{ vault_kimsufi_consumer_key }}"
+
+free_ftp_hostname: "{{ vault_free_ftp_hostname }}"
+free_ftp_username: "{{ vault_free_ftp_username }}"
+free_ftp_password: "{{ vault_free_ftp_password }}"

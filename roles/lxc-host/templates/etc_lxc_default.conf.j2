@@ -1,0 +1,14 @@
+lxc.network.type = veth
+lxc.network.link = lxcbr0
+lxc.network.flags = up
+lxc.network.hwaddr = 00:16:3e:xx:xx:xx
+lxc.start.auto = 1
+lxc.group = onboot
+
+# Fuse
+lxc.cgroup.devices.allow = c 10:229 rwm
+
+# Docker
+lxc.aa_profile = unconfined
+lxc.cgroup.devices.allow = a
+lxc.cap.drop =

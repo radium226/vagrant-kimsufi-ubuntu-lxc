@@ -2,13 +2,41 @@
 
 bootstrap_vagrant()
 {
+  local from_scratch=${1}
+  if ${from_scratch}; then
+    vagrant destroy -f
+  fi
+
   vagrant up
-  vagrant ssh-config >"./.ssh/vagrant-config.j2.head-vagrant"
-  cat "./.ssh/vagrant-config.j2.head" "./.ssh/vagrant-config.j2.tail" >"./.ssh/vagrant-config.j2"
+  # We need to remove the Identity File because of the post-install.sh provsionning
+  vagrant ssh-config | grep -v "IdentityFile" >"./.ssh/config.j2.head-vagrant"
+  cat "./.ssh/config.j2.head-vagrant" "./.ssh/config.j2.tail" >"./.ssh/config.j2"
+  ansible-playbook -i "inventories/vagrant.ini" "vagrant.yml" "lxc.yml" -e 'bootstrap_ssh_user="vagrant"' --vault-password-file "./.vault-password"
 }
+
 
 bootstrap_kimsufi()
 {
-  cat "./.ssh/vagrant-config.j2.head" "./.ssh/vagrant-config.j2.tail" >"./.ssh/vagrant-config.j2"
-  echo >"/dev/null"
+  local from_scratch=${1}
+  cat "/dev/null" "./.ssh/config.j2.tail" >"./.ssh/config.j2"
+  ansible-playbook -i "inventories/kimsufi.ini" "kimsufi.yml" "lxc.yml" -e "bootstrap_ssh_user=\"kimsufi\"" -e "kimsufi_from_scratch=\"${from_scratch}\"" --vault-password-file "./.vault-password"
 }
+
+main()
+{
+  local options=$( getopt -o s --long from-scratch -n 'bootstrap' -- "$@" )
+  eval set -- "${options}"
+  local from_scratch=false
+  while true; do
+    case "${1}" in
+      -s | --from-scratch ) from_scratch=true; shift ;;
+      --) shift; break ;;
+      *) shift; break ;;
+    esac
+  done
+  local provider="${1}"
+
+  bootstrap_${provider} ${from_scratch}
+}
+
+main "${@}"

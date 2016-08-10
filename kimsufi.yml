@@ -1,0 +1,91 @@
+---
+# We generate the SSH config we're going to use...
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: generate SSH config
+    template:
+      src=".ssh/config.j2"
+      dest=".ssh/config"
+    tags: [ "ssh-config" ]
+
+
+# We copy Kimsufi's post-install script
+- hosts: localhost
+  gather_facts: no
+  vars:
+    free_ftp_hostname: "ftpperso.free.fr"
+    free_ftp_username: "centromere"
+    free_ftp_password: "hotland"
+    kimsufi_post_install_file_name: "post-install.sh"
+    kimsufi_post_install_script_url: "http://{{ free_ftp_username }}.free.fr/{{ kimsufi_post_install_file_name }}"
+  tasks:
+  - name: copy Kimsufi's post-install script
+    shell: |
+      old_md5="$( wget '{{ kimsufi_post_install_script_url }}' -O - | md5sum )"
+      new_md5="$( cat 'files/{{ kimsufi_post_install_file_name }}' | md5sum )"
+      if [[ "${old_md5}" != "${new_md5}" ]]; then
+        curl -T 'files/{{ kimsufi_post_install_file_name }}' 'ftp://{{ free_ftp_hostname }}' --user '{{ free_ftp_username }}:{{ free_ftp_password }}'
+        rc=$?
+        if [[ ${rc} -eq 0 ]]; then
+          exit 0
+        else
+          exit 2
+        fi
+      else
+        exit 1
+      fi
+    register: copy_kimsufi_post_install_script
+    changed_when: "{{ copy_kimsufi_post_install_script.rc == 0 }}"
+    failed_when: "{{ copy_kimsufi_post_install_script.rc >= 2 }}"
+    tags: [ "kimsufi" ]
+
+
+# We setup the server on Kimsufi using https://eu.api.kimsufi.com/createToken/
+- hosts: kimsufi
+  gather_facts: no
+  tags: [ "kimsufi" ]
+  vars:
+    kimsufi_service_name: "{{ inventory_hostname }}"
+    kimsufi_from_scratch: false
+  tasks:
+    # Here is the module to put in Ansible library: https://github.com/cornelius-keller/ansible-ovh
+    # Here is the Kimsufi portal to create new tokens: https://eu.api.kimsufi.com/createToken/
+    - name: remove old entry from ~/.ssh/known_hosts
+      delegate_to: localhost
+      shell: "ssh-keygen -R '{{ item }}' ; ssh-keygen -R 'analyevent.fr'"
+      with_items: "{{ groups['all'] | difference(['localhost']) }}" # Every server except 127.0.0.1
+      changed_when: False
+      tags:
+      - bootstrap_ansible
+
+    # We trigger the service installation through the OVH API
+    - name: start server installation
+      delegate_to: localhost
+      ovh:
+        method: "post"
+        endpoint: "kimsufi-eu"
+        application_key: "{{ kimsufi_application_key }}"
+        application_secret: "{{ kimsufi_application_secret }}"
+        consumer_key: "{{ kimsufi_consumer_key }}"
+        uri: "/dedicated/server/{{ kimsufi_service_name }}/install/start"
+        args:
+          templateName: "Ubuntu"
+      register: start_server_installation
+      when: "{{ kimsufi_from_scratch }}"
+
+    # We wait for the server installation to complete
+    - name: wait for server installation
+      delegate_to: localhost
+      action: ovh
+        method="get"
+        endpoint="kimsufi-eu"
+        application_key="{{ kimsufi_application_key }}"
+        application_secret="{{ kimsufi_application_secret }}"
+        consumer_key="{{ kimsufi_consumer_key }}"
+        uri="/dedicated/server/{{ kimsufi_service_name }}/task/{{ start_server_installation.result.taskId }}"
+      register: wait_for_server_installation
+      until: wait_for_server_installation.result.status == 'done'
+      delay: 60
+      retries: 20
+      when: "{{ kimsufi_from_scratch }}"

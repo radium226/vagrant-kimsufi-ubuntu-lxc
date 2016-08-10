@@ -1,0 +1,21 @@
+alias ssh="ssh -F '.ssh/config'"
+
+bv()
+{
+	./bootstrap vagrant
+}
+
+bvs()
+{
+	./bootstrap --from-scratch vagrant
+}
+
+bk()
+{
+	./bootstrap kimsufi
+}
+
+bks()
+{
+	./bootstrap --from-scratch kimsufi
+}

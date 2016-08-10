@@ -1,0 +1,59 @@
+---
+# We prepare the LXC host
+- hosts: lxc-host[0]
+  gather_facts: no
+  tasks:
+  - name: bootstrap lxc host
+    command: "files/bootstrap_ansible.sh '{{ inventory_hostname }}' '{{ bootstrap_ssh_user }}'"
+    delegate_to: localhost
+    register: bootstrap_lxc_host
+    changed_when: "{{ bootstrap_lxc_host.rc == 0 }}"
+    failed_when: "{{ bootstrap_lxc_host.rc >= 2 }}"
+    tags: ["lxc-host"]
+  - name: retreive lxc host private SSH key
+    fetch:
+      src="/home/{{ ansible_user }}/.ssh/id_rsa"
+      dest="./.ssh/proxy-id_rsa"
+      flat=yes
+    tags: ["ssh-config", "lxc-host"]
+
+- hosts: lxc-host[0]
+  gather_facts: no
+  become: yes
+  roles:
+  - { role: "common",   tags: ["lxc-host"] }
+  - { role: "lxc-host", tags: ["lxc-host"] }
+
+
+# We create the LXC guests
+- hosts: lxc-guest
+  gather_facts: no
+  serial: 1
+  vars:
+    lxc_guest_user: "ubuntu"
+  tasks:
+  - name: create lxc guests
+    script: "files/create-lxc-guest.sh '{{ inventory_hostname }}' '{{ lxc_guest_user }}'"
+    become: yes
+    delegate_to: "{{ groups['lxc-host'][0] }}"
+    register: create_lxc_guest
+    changed_when: "{{ create_lxc_guest.rc == 0 }}"
+    failed_when: "{{ create_lxc_guest.rc >= 2 }}"
+    tags: ["lxc-guest"]
+  - name: bootstrap lxc guests
+    command: "files/bootstrap_ansible.sh '{{ inventory_hostname }}' '{{ lxc_guest_user }}'"
+    delegate_to: localhost
+    register: bootstrap_lxc_guest
+    changed_when: "{{ bootstrap_lxc_guest.rc == 0 }}"
+    failed_when: "{{ bootstrap_lxc_guest.rc >= 2 }}"
+    tags: ["lxc-guest"]
+
+
+# We prepare the LXC guests
+- hosts: lxc-guest
+  gather_facts: no
+  serial: 1
+  become: yes
+  roles:
+  - { role: "common",    tags: ["lxc-guest"] }
+  - { role: "lxc-guest", tags: ["lxc-guest"] }

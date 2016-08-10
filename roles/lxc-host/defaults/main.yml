@@ -1,0 +1,6 @@
+---
+#lxc_host_bridge_ip: "192.168.254.1"
+#lxc_host_bridge_netmask: "255.255.255.0"
+#lxc_host_dhcp_range: "192.168.254.2,192.168.254.254"
+#lxc_host_bridge_name: "br0"
+#lxc_host_domain: "lxc"

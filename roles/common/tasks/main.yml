@@ -1,0 +1,6 @@
+---
+- include: "pip.yml"
+- include: "apt.yml"
+- include: "ipv6.yml"
+- include: "ssh.yml"
+- include: "motd.yml"

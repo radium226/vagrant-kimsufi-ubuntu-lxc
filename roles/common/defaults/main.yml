@@ -1,0 +1,16 @@
+---
+common_apt_packages:
+- "python-selinux"
+- "netcat"
+- "lsof"
+- "strace"
+- "nmap"
+- "moreutils"
+- "xmlstarlet"
+- "ncdu"
+- "ack-grep"
+- "software-properties-common"
+- "apt-show-versions"
+
+common_pip_modules:
+- "httplib2"

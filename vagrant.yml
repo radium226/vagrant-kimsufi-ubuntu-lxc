@@ -1,0 +1,12 @@
+---
+# We generate the SSH config we're going to use...
+- hosts: localhost
+  gather_facts: no
+  vars:
+    virtualbox_ssh_port: 1234
+  tasks:
+  - name: generate SSH config
+    template:
+      src=".ssh/config.j2"
+      dest=".ssh/config"
+    tags: ["ssh-config"]

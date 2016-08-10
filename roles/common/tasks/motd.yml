@@ -1,0 +1,9 @@
+---
+- name: install Figlet
+  apt:
+    name: "figlet"
+    state: installed
+
+- name: setup motd
+  shell: "figlet -f slant $( hostname ) >/etc/motd.tail"
+  changed_when: False

@@ -1,0 +1,7 @@
+---
+- name: reload SSH
+  command: systemctl reload sshd
+
+- name: reload UFW
+  ufw:
+    state=reloaded

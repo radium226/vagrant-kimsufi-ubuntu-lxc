@@ -2,3 +2,7 @@
 **/*.log
 .ssh/cagrant-config.j2.head-vagrant
 .ssh/vagrant-config.j2
+.ssh/config
+.ssh/proxy-id_rsa
+**/*.retry
+.vault-password
