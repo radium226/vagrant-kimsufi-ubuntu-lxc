@@ -6,3 +6,4 @@
 .ssh/proxy-id_rsa
 **/*.retry
 .vault-password
+.ssh/config.j2
